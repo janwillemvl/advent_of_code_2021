@@ -1,5 +1,11 @@
 import time
 start = time.perf_counter()
+import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+
+plt.ion()
 
 
 class PathKeeper:
@@ -10,6 +16,16 @@ class PathKeeper:
         self.risk_levels = risk_levels
         self.size = len(risk_levels)
         self.solution = None
+        self.matrix = np.zeros([self.size, self.size], dtype=np.uint8)
+        self.matrix[4,4] = 10
+
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111)
+        self.im = self.ax.imshow(self.matrix, vmin=0, vmax=10)
+        plt.show(block=True)
+
+        plt.draw()
+        plt.pause(1)
 
     def get_neighbours(self, x, y, value):
         neighbours = []
@@ -42,6 +58,8 @@ class PathKeeper:
                 self.value_list.insert(index, n[1])
                 self.coordinate_list.insert(index, n[0])
                 self.prev_paths[n[0]] = n[1]
+                self.matrix[n[0][0], n[0][1]] = n[1]
+        self.update_plot()
 
     def solve(self):
         counter = 0
@@ -49,6 +67,13 @@ class PathKeeper:
             self.next_step()
             counter += 1
         return self.solution
+
+    def update_plot(self):
+        self.im.set_array(self.matrix)
+        self.fig.canvas.draw()
+        self.fig.canvas.flush_events()
+
+        plt.pause(0.0001)
 
 
 risk_levels = []
@@ -71,8 +96,10 @@ for y in range(factor * size):
         if x >= len(extended_risk_levels[y]):
             extended_risk_levels[y].append((extended_risk_levels[y][x-size] % 9)+1)
 
-p = PathKeeper(0, 0, 0, extended_risk_levels)
-solution = p.solve()
-print(solution)
+#p = PathKeeper(0, 0, 0, extended_risk_levels)
+#solution = p.solve()
+#print(solution)
+
+plt.show()
 
 print('time', time.perf_counter()-start)
